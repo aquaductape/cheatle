@@ -1,5 +1,5 @@
 {
-  "name": "cheat wordle",
+  "name": "cheat_wordle",
   "version": "1.0.0",
   "description": "",
   "main": "./lib/index.js",
