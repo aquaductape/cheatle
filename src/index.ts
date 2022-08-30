@@ -77,12 +77,19 @@ const listPotentialWords = async () => {
 
   console.log(potentialWords);
 
-  if (potentialWords.length < 1000) {
-    console.log("Getting elimination words ...");
-  }
-  const eliminationWords = getEliminationWords(potentialWords);
+  if (potentialWords.length > 2) {
+    if (potentialWords.length < 1000) {
+      console.log("Getting elimination words ...");
+    }
+    const eliminationWords = getEliminationWords(potentialWords);
 
-  console.log(eliminationWords || "No elimination words found");
+    if (eliminationWords) {
+      console.log(`Elimination Word: ${eliminationWords.word}`);
+      console.log(eliminationWords.message);
+    } else {
+      console.log("No elimination words found");
+    }
+  }
 };
 
 // Add Events
@@ -106,8 +113,6 @@ const addEvents = () => {
 
   console.log("Cheat Wordle Initiated! 👀");
 };
-
-// addEvents();
 
 // Core Logic
 
@@ -192,11 +197,11 @@ function createPartialPermutations(
 }
 
 // const foo = getEliminationWords([
-//   "super",
-//   "tuner",
-//   "fumer",
-//   "luger",
-//   "queer",
+//   "greet",
+//   "sleet",
+//   "sweet",
+//   "fleet",
+//   "tweet",
 //   // "batty",
 //   // "patty",
 //   // "tatty",
@@ -367,12 +372,16 @@ function getEliminationWords(
 
   const matchedSentence =
     result.matches.length > 1
-      ? `${result.matches.slice(0, 3).join(", ")} ...`
+      ? `${result.matches.join(", ")}`
       : result.matches[0];
 
   return {
     word: result.foundWord,
-    message: `Choose "${result.foundWord}" in order to get rid of words that contain "${result.pattern}" character pattern (such as ${matchedSentence})`,
+    message: `Choose "${result.foundWord}", in order to get rid of at least ${
+      result.matches.length - 1
+    } words that contain "${
+      result.pattern
+    }" character pattern (such as ${matchedSentence})`,
   };
 }
 
@@ -518,3 +527,6 @@ const getPotentialWords = ({
     return word.match(regex);
   });
 };
+
+// run App
+addEvents();
