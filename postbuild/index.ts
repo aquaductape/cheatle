@@ -6,7 +6,7 @@ const buildOutDist = "dist";
 
 const bookmarkletFetchCdnStr = `
 const script = document.createElement('script')
-script.src = 'https://cdn.jsdelivr.net/gh/aquaductape/cheatle@master/dir/index.js'
+script.src = 'https://cdn.jsdelivr.net/gh/aquaductape/cheatle@master/dist/index.js'
 document.head.appendChild(script)
 `;
 
