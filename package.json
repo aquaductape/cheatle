@@ -2,11 +2,10 @@
   "name": "cheat_wordle",
   "version": "1.0.1",
   "description": "",
-  "main": "./lib/index.js",
   "scripts": {
     "fullbuild": "npm run build && npm run postbuild",
     "build": "node ./scripts/build.js",
-    "postbuild": "node ./scripts/postbuild.js && node ./lib/index.js"
+    "postbuild": "node ./scripts/postbuild.js && node ./tempdir/index.js"
   },
   "author": "aquaductape",
   "license": "MIT",

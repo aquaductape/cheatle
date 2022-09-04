@@ -7,7 +7,7 @@ build({
   outbase: "./src",
   platform: "node",
   bundle: true,
-  outfile: "./lib/index.js",
+  outfile: "./tempdir/index.js",
   splitting: false,
   target: "es2016",
   minify: true,
