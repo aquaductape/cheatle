@@ -19,9 +19,9 @@ root.innerHTML = `
 </div>
 `;
 const buttonStyle =
-  "display: flex; justify-content: center; align-items: center; gap: 2px; border: none; color: white; text-transform: uppercase; font-weight: bold;";
+  "display: flex; justify-content: center; align-items: center; gap: 2px; border: none; color: white; text-transform: uppercase; font-weight: bold; background: none;";
 const wordTileStyle = ({ bg }: { bg: string }) =>
-  `padding: 2px; width: 10px; flex-shrink: 0; background: ${bg}; text-shadow: 1px 1px 2px black, -1px 0px 2px black; text-align: center; display: flex; justify-content: center; align-items: center; border-radius: 2px;`;
+  `padding: 3px; width: 10px; flex-shrink: 0; background: ${bg}; text-shadow: 1px 1px 2px black, -1px 0px 2px black; text-align: center; display: flex; justify-content: center; align-items: center; border-radius: 2px;`;
 
 export const createRoot = () => {
   document.body.appendChild(root);
@@ -42,21 +42,24 @@ export const clearMain = () => {
 };
 
 const renderWordTileEls = (word: string) =>
-  word.split("").map((char, idx) => {
-    const foundChar = state.characterEvaluationBank.find((item) => {
-      return item.character === char && item.index === idx;
-    })!;
-    const bg = foundChar
-      ? state.colors[foundChar.evaluation]
-      : state.colors.unknown;
+  word
+    .split("")
+    .map((char, idx) => {
+      const foundChar = state.characterEvaluationBank.find((item) => {
+        return item.character === char && item.index === idx;
+      })!;
+      const bg = foundChar
+        ? state.colors[foundChar.evaluation]
+        : state.colors.unknown;
 
-    return `<div style="${wordTileStyle({ bg })}">${char}</div>`;
-  });
+      return `<div style="${wordTileStyle({ bg })}">${char}</div>`;
+    })
+    .join("");
 
 export const renderPotentialAnswerItems = (words: string[]) => {
   let els = `
       <div class="potential-answers-count" style="padding: 4px">Potential Words: ${words.length}</div>
-      <div class="potential-answers-list" style="display: grid; width: 100%; overflow: auto; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));">
+      <div class="potential-answers-list" style="display: grid; width: 100%; overflow: auto; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 6px;">
   `;
 
   words.forEach((word) => {
