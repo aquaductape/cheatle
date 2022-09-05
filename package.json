@@ -1,6 +1,6 @@
 {
   "name": "cheat_wordle",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "scripts": {
     "fullbuild": "npm run build && npm run postbuild",

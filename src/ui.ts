@@ -1,3 +1,5 @@
+import { state } from "./core";
+
 // state
 let showMain = false;
 
@@ -17,7 +19,9 @@ root.innerHTML = `
 </div>
 `;
 const buttonStyle =
-  "border: none; border-radius: 4px; background: #393a3c; color: white; text-transform: uppercase; padding: 5px 4px; letter-spacing: 2px; font-weight: bold;";
+  "display: flex; justify-content: center; align-items: center; gap: 2px; border: none; color: white; text-transform: uppercase; font-weight: bold;";
+const wordTileStyle = ({ bg }: { bg: string }) =>
+  `padding: 2px; width: 10px; flex-shrink: 0; background: ${bg}; text-shadow: 1px 1px 2px black, -1px 0px 2px black; text-align: center; display: flex; justify-content: center; align-items: center; border-radius: 2px;`;
 
 export const createRoot = () => {
   document.body.appendChild(root);
@@ -37,14 +41,27 @@ export const clearMain = () => {
   el2.innerHTML = "";
 };
 
+const renderWordTileEls = (word: string) =>
+  word.split("").map((char, idx) => {
+    const foundChar = state.characterEvaluationBank.find((item) => {
+      return item.character === char && item.index === idx;
+    })!;
+    const bg = foundChar
+      ? state.colors[foundChar.evaluation]
+      : state.colors.unknown;
+
+    return `<div style="${wordTileStyle({ bg })}">${char}</div>`;
+  });
+
 export const renderPotentialAnswerItems = (words: string[]) => {
   let els = `
       <div class="potential-answers-count" style="padding: 4px">Potential Words: ${words.length}</div>
-      <div class="potential-answers-list" style="display: grid; width: 100%; overflow: auto; grid-auto-flow: column dense; grid-template-rows: 1fr 1fr 1fr; grid-auto-columns: 1fr; gap: 2px;">
+      <div class="potential-answers-list" style="display: grid; width: 100%; overflow: auto; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));">
   `;
+
   words.forEach((word) => {
     const el = `
-  <button style="${buttonStyle}">${word}</button>
+  <button style="${buttonStyle}">${renderWordTileEls(word)}</button>
   `;
     els += el;
   });
@@ -61,7 +78,9 @@ export const renderEliminationWord = ({
 }) => {
   const el = `
   <div style="padding: 4px">Elimination word</div>
-  <button style="${buttonStyle} margin-botton: 10px;">${word}</button>
+  <button style="${buttonStyle} margin-botton: 10px;">${renderWordTileEls(
+    word
+  )}</button>
   <div style="max-height: 75px; overflow: auto; color: #bababa; line-height: 22px; border-top: 1px solid #313131; padding-top: 10px; font-size: 14px;">${message}</div>
  `;
   root.querySelector(".elimination-word-container")!.innerHTML = el;

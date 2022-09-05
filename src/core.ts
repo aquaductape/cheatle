@@ -16,11 +16,18 @@ export const state = {
     { character: [""], evaluation: "unknown" },
   ],
   characterEvaluationBank: [],
+  colors: {
+    correct: "var(--color-correct, #538d4e)",
+    present: "var(--color-present, #b59f3b)",
+    absent: "var(--color-absent, #3a3a3c)",
+    unknown: "var(--key-bg, #818384)",
+  },
 } as {
   currentWordEvaluation: (Pick<TWordEvaluation, "evaluation"> & {
     character: string[];
   })[];
   characterEvaluationBank: (TWordEvaluation & { index: number })[];
+  colors: { [key: string]: string };
 };
 
 export const getPotentialWords = ({
@@ -331,8 +338,6 @@ export function getEliminationWords({
     if (mostOccuring.count < input.length / 3) {
       return null;
     }
-    // console.log(mostOccuring);
-    // console.log(input.length);
     const uniqueCharsSet = new Set<string>();
     const emptySlots =
       mostOccuring.word.length - mostOccuring.word.replace(/\*/g, "").length;
@@ -419,7 +424,6 @@ export function getEliminationWords({
           ),
         };
       });
-      console.log(permutations);
 
       permutations.find((permutation) => {
         const foundWord = filtered.find((word) => {
