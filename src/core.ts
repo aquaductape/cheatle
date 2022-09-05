@@ -1,15 +1,32 @@
+// import { testWordleWords } from "./testWords";
 import { wordleAdditionalWords } from "./wordleAdditionalWords";
 import { wordleAnswerWords } from "./wordleAnswerWords";
 
-export type TPreviusWord = {
+export type TWordEvaluation = {
   character: string;
-  evaluation: "present" | "absent" | "correct";
+  evaluation: "present" | "absent" | "correct" | "unknown";
+};
+
+export const state = {
+  currentWordEvaluation: [
+    { character: [""], evaluation: "unknown" },
+    { character: [""], evaluation: "unknown" },
+    { character: [""], evaluation: "unknown" },
+    { character: [""], evaluation: "unknown" },
+    { character: [""], evaluation: "unknown" },
+  ],
+  characterEvaluationBank: [],
+} as {
+  currentWordEvaluation: (Pick<TWordEvaluation, "evaluation"> & {
+    character: string[];
+  })[];
+  characterEvaluationBank: (TWordEvaluation & { index: number })[];
 };
 
 export const getPotentialWords = ({
   previusWords,
 }: {
-  previusWords: TPreviusWord[][];
+  previusWords: TWordEvaluation[][];
 }) => {
   const absentCharsArr = getAbsentChars();
   const correctCharsArrData = getCorrectCharsData();
@@ -54,7 +71,7 @@ export const getPotentialWords = ({
     return [...new Set(result)];
   }
 
-  function getMustIncludePresentCharsRegex(inputWords: TPreviusWord[][]) {
+  function getMustIncludePresentCharsRegex(inputWords: TWordEvaluation[][]) {
     const result = inputWords.flatMap((words) =>
       words.map(({ character }) => `(?=.*${character})`)
     );
@@ -73,9 +90,9 @@ export const getPotentialWords = ({
   }
 
   function formatCharsRegexArr(
-    inputWords: (TPreviusWord & { index?: number })[][],
+    inputWords: (TWordEvaluation & { index?: number })[][],
     cb: (
-      word: TPreviusWord & { characterIndex?: number; selfItem: string }
+      word: TWordEvaluation & { characterIndex?: number; selfItem: string }
     ) => string
   ) {
     const result = new Array(5).fill("") as string[];
@@ -94,7 +111,7 @@ export const getPotentialWords = ({
     return result;
   }
 
-  function getPresentChars(presentChars: TPreviusWord[][]) {
+  function getPresentChars(presentChars: TWordEvaluation[][]) {
     return presentChars.flatMap((words) =>
       words.flatMap(({ character }) => character)
     );
@@ -231,11 +248,28 @@ function createPartialPermutations(
 //   // "creek",
 // ]);
 // console.log(foo);
+// const foo = getEliminationWords({
+//   potentialWords: testWordleWords,
+//   currentWordEvaluation: [
+//     { character: ["s"], evaluation: "absent" },
+//     { character: ["u"], evaluation: "absent" },
+//     { character: ["p"], evaluation: "absent" },
+//     { character: ["e"], evaluation: "correct" },
+//     { character: ["r"], evaluation: "correct" },
+//   ],
+// });
+// console.log(foo);
 
-export function getEliminationWords(
-  input: string[]
-): null | { word: string; message: string } {
-  if (input.length >= 1000) return null;
+export function getEliminationWords({
+  potentialWords,
+  currentWordEvaluation,
+}: {
+  potentialWords: string[];
+  currentWordEvaluation: (Pick<TWordEvaluation, "evaluation"> & {
+    character: string[];
+  })[];
+}): null | { word: string; message: string } {
+  if (potentialWords.length >= 1000) return null;
   // potential words: ['batty', 'patty', 'tatty', 'jetty', 'fatty', 'ratty', 'petty', 'catty']
   // elimation word: probe
   // potential words: ['smear', 'swear', 'shear', 'clear', 'spear']
@@ -312,9 +346,22 @@ export function getEliminationWords(
       }
       return matched;
     });
-    // const uniqueCharsArr = [...uniqueCharsSet];
+
+    const createUniqueCharsRegexArr = (input: string) => {
+      const arr: string[] = Array.from({ length: 5 }, () => `[${input}]`);
+
+      currentWordEvaluation.forEach((item, idx) => {
+        if (item.evaluation !== "correct") return;
+
+        arr[idx] = arr[idx].replace(item.character[0], "");
+      });
+
+      return arr;
+    };
     const uniqueCharsStr = [...uniqueCharsSet].join("");
-    const uniqueCharsRegexStr = `[${uniqueCharsStr}]`.repeat(5);
+    const uniqueCharsRegexArr = createUniqueCharsRegexArr(uniqueCharsStr);
+    const uniqueCharsRegexStr = uniqueCharsRegexArr.join("");
+
     const uniqueCharsRegex = new RegExp(`^${uniqueCharsRegexStr}$`);
 
     const filtered = wordleAnswerWords
@@ -328,10 +375,35 @@ export function getEliminationWords(
       return matched[0].length === new Set(matched[0].split("")).size;
     });
 
+    const sortPermutationByCorrectPosition = (input: string[]) => {
+      const indexesOfCorrectPositions = currentWordEvaluation
+        .map((item, idx) => ({ item, idx }))
+        .filter(({ item }) => item.evaluation === "correct")
+        .map(({ item, idx }) => idx);
+
+      const foundItems: string[] = [];
+      const newList = input.filter((item) => {
+        const itemIndexes = item
+          .split("")
+          .map((item2, idx) => (item2 === "." ? idx : -1));
+        if (
+          indexesOfCorrectPositions.find((item) => itemIndexes.includes(item))
+        ) {
+          foundItems.push(item);
+          return false;
+        }
+        return true;
+      });
+      return newList.concat(foundItems);
+    };
+
     if (!found) {
-      const permutations = createPartialPermutations("*".repeat(5), {
+      let permutationsStr = createPartialPermutations("*".repeat(5), {
         replaceWith: ".",
-      }).map((item) => {
+      });
+      permutationsStr = sortPermutationByCorrectPosition(permutationsStr);
+
+      const permutations = permutationsStr.map((item) => {
         let indexes: number[] = [];
         item.split("").forEach((item1, idx) => {
           if (item1 === ".") {
@@ -342,16 +414,20 @@ export function getEliminationWords(
           indexes,
           regex: new RegExp(
             `^${item
-              .replace(/\*/g, `[${uniqueCharsStr}]`)
+              .replace(/\*/g, (_, idx) => `${uniqueCharsRegexArr[idx]}`)
               .replace(/\./g, `[^${uniqueCharsStr}]`)}$`
           ),
         };
       });
+      console.log(permutations);
 
       permutations.find((permutation) => {
         const foundWord = filtered.find((word) => {
           const matched = word.match(permutation.regex);
           if (!matched) return false;
+
+          const matchedUniqueChars = new Set(matched[0].split(""));
+          if (matched[0].length !== matchedUniqueChars.size) return false;
 
           const matchedArr = matched[0]
             .split("")
@@ -374,7 +450,7 @@ export function getEliminationWords(
       } || null
     );
   }
-  const result = findSimilarWordsInPotentialList(input);
+  const result = findSimilarWordsInPotentialList(potentialWords);
 
   if (!result) return null;
   // if less than 100 words   findSimilarWords(input, 4)

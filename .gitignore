@@ -84,3 +84,5 @@ typings/
 
 /dist/*
 !/dist/index.js
+
+/src/testWords.ts

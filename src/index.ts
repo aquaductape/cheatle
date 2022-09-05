@@ -1,4 +1,9 @@
-import { getEliminationWords, getPotentialWords, TPreviusWord } from "./core";
+import {
+  getEliminationWords,
+  getPotentialWords,
+  state,
+  TWordEvaluation,
+} from "./core";
 import {
   clearMain,
   createRoot,
@@ -31,9 +36,9 @@ const areWordsReady = () => {
     const hasEvaluation = (el: HTMLElement) => {
       const evaluation = el.getAttribute(
         "data-state"
-      ) as TPreviusWord["evaluation"];
+      ) as TWordEvaluation["evaluation"];
       const evaluations = ["absent", "present", "correct"] as unknown as [
-        TPreviusWord["evaluation"]
+        TWordEvaluation["evaluation"]
       ];
 
       return evaluations.includes(evaluation);
@@ -83,7 +88,10 @@ const listPotentialWords = async () => {
     if (potentialWords.length < 1000) {
       console.log("Getting elimination words ...");
     }
-    const eliminationWords = getEliminationWords(potentialWords);
+    const eliminationWords = getEliminationWords({
+      potentialWords,
+      currentWordEvaluation: state.currentWordEvaluation,
+    });
 
     if (eliminationWords) {
       console.log(`Elimination Word: ${eliminationWords.word}`);
@@ -126,24 +134,62 @@ const addEvents = () => {
 
 const getWordsFromApp = () => {
   const wordRows = queryWordRows();
-  const guessedWords: TPreviusWord[][] = [];
+  const guessedWords: TWordEvaluation[][] = [];
 
   wordRows.forEach((wordRow) => {
     const letterTiles = queryLetterTiles(wordRow);
-    const word: TPreviusWord[] = [];
+    const word: TWordEvaluation[] = [];
 
-    letterTiles.forEach((gameTile) => {
+    letterTiles.forEach((gameTile, idx) => {
       if (!gameTile.textContent) return;
 
       const character = gameTile.textContent!;
       const evaluation = gameTile.getAttribute(
         "data-state"
-      ) as TPreviusWord["evaluation"];
+      ) as TWordEvaluation["evaluation"];
+
+      if (evaluation === "absent") {
+        if (
+          (state.currentWordEvaluation[idx % 5].evaluation === "unknown" ||
+            state.currentWordEvaluation[idx % 5].evaluation === "absent") &&
+          !state.currentWordEvaluation[idx % 5].character.includes(character)
+        ) {
+          state.currentWordEvaluation[idx % 5].character.push(character);
+          state.currentWordEvaluation[idx % 5].evaluation = "absent";
+        }
+      }
+
+      if (evaluation === "present") {
+        if (state.currentWordEvaluation[idx % 5].evaluation !== "correct") {
+          state.currentWordEvaluation[idx % 5].character.push(character);
+          state.currentWordEvaluation[idx % 5].evaluation = "present";
+        }
+      }
+
+      if (evaluation === "correct") {
+        state.currentWordEvaluation[idx % 5] = {
+          character: [character],
+          evaluation,
+        };
+      }
+      const foundCharacter = state.characterEvaluationBank.find(
+        (item) => item.character === character && item.index === idx % 5
+      );
+
+      if (!foundCharacter) {
+        state.characterEvaluationBank.push({
+          character,
+          evaluation,
+          index: idx % 5,
+        });
+      }
+
       word.push({ character, evaluation });
     });
 
     guessedWords.push(word);
   });
+  console.log(state);
 
   return guessedWords;
 };
