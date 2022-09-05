@@ -59,7 +59,7 @@ const renderWordTileEls = (word: string) =>
 export const renderPotentialAnswerItems = (words: string[]) => {
   let els = `
       <div class="potential-answers-count" style="padding: 4px">Potential Words: ${words.length}</div>
-      <div class="potential-answers-list" style="display: grid; width: 100%; overflow: auto; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 6px;">
+      <div class="potential-answers-list" style="display: grid; width: 100%; overflow: auto; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 6px; max-height: 100px;">
   `;
 
   words.forEach((word) => {
