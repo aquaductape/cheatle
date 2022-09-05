@@ -189,7 +189,6 @@ const getWordsFromApp = () => {
 
     guessedWords.push(word);
   });
-  console.log(state);
 
   return guessedWords;
 };
