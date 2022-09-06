@@ -45,11 +45,20 @@ const renderWordTileEls = (word: string) =>
   word
     .split("")
     .map((char, idx) => {
-      const foundChar =
-        state.characterEvaluationBank.find(
-          (item) => item.character === char && item.index === idx
-        )! ||
-        state.characterEvaluationBank.find((item) => item.character === char);
+      let foundChar = state.characterEvaluationBank.find(
+        (item) => item.character === char && item.index === idx
+      )!;
+
+      if (foundChar) {
+        const foundChar2 = state.characterEvaluationBank.find((item) => {
+          return item.character === char;
+        });
+
+        if (foundChar2) {
+          foundChar = { ...foundChar2, evaluation: "present" };
+        }
+      }
+
       const bg = foundChar
         ? state.colors[foundChar.evaluation]
         : state.colors.unknown;
