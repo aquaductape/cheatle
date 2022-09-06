@@ -49,7 +49,7 @@ const renderWordTileEls = (word: string) =>
         (item) => item.character === char && item.index === idx
       )!;
 
-      if (foundChar) {
+      if (!foundChar) {
         const foundChar2 = state.characterEvaluationBank.find((item) => {
           return item.character === char;
         });
